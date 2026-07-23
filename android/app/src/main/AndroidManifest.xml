@@ -21,23 +21,72 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
-            <!-- Deep link intent filter for custom schemes -->
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="pgeuconf" />
-                <data android:scheme="conferencescanner" />
-            </intent-filter>
-
-            <!-- Deep link intent filter for HTTPS URLs -->
+            <!-- App Links for pgeu-system check-in / scanning URLs.
+                 autoVerify opens the app directly only when a matching
+                 assetlinks.json is served from each host; otherwise the link
+                 falls back to the web app in the browser. Hosts and path
+                 patterns mirror the previous native scanner app. -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
+
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="https" />
-                <data android:host="postgresql.eu" />
-                <data android:pathPrefix="/events/" />
+
+                <!-- PostgreSQL Europe -->
+                <data
+                    android:host="www.postgresql.eu"
+                    android:pathPattern="/events/.*/checkin/.*/"
+                    android:scheme="https" />
+                <data
+                    android:host="www.postgresql.eu"
+                    android:pathPattern="/events/.*/checkin/.*/f.*/"
+                    android:scheme="https" />
+                <data
+                    android:host="www.postgresql.eu"
+                    android:pathPattern="/events/sponsor/scanning/.*"
+                    android:scheme="https" />
+
+                <!-- PostgreSQL US -->
+                <data
+                    android:host="postgresql.us"
+                    android:pathPattern="/events/.*/checkin/.*/"
+                    android:scheme="https" />
+                <data
+                    android:host="postgresql.us"
+                    android:pathPattern="/events/.*/checkin/.*/f.*/"
+                    android:scheme="https" />
+                <data
+                    android:host="postgresql.us"
+                    android:pathPattern="/events/sponsor/scanning/.*"
+                    android:scheme="https" />
+
+                <!-- Slonik Events Canada -->
+                <data
+                    android:host="www.pgevents.ca"
+                    android:pathPattern="/events/.*/checkin/.*/"
+                    android:scheme="https" />
+                <data
+                    android:host="www.pgevents.ca"
+                    android:pathPattern="/events/.*/checkin/.*/f.*/"
+                    android:scheme="https" />
+                <data
+                    android:host="www.pgevents.ca"
+                    android:pathPattern="/events/sponsor/scanning/.*"
+                    android:scheme="https" />
+
+                <!-- PGDay.UK -->
+                <data
+                    android:host="pgday.uk"
+                    android:pathPattern="/events/.*/checkin/.*/"
+                    android:scheme="https" />
+                <data
+                    android:host="pgday.uk"
+                    android:pathPattern="/events/.*/checkin/.*/f.*/"
+                    android:scheme="https" />
+                <data
+                    android:host="pgday.uk"
+                    android:pathPattern="/events/sponsor/scanning/.*"
+                    android:scheme="https" />
             </intent-filter>
         </activity>
 
