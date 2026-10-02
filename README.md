@@ -79,7 +79,7 @@ This Ionic application replaces the legacy Android-only app, expanding support t
 - **State Management:** Zustand (global state)
 - **Routing:** Ionic React Router (built on React Router)
 - **Icons:** Ionicons
-- **Asset Generation:** @capacitor/assets
+- **Asset Generation:** @capacitor/assets, run on demand with `npx @capacitor/assets generate` (not a project dependency)
 
 ## Project Structure
 
