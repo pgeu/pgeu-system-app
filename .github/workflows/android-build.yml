@@ -151,7 +151,7 @@ jobs:
 
       - name: Upload Debug APK
         if: steps.build-config.outputs.build_debug == 'true' && steps.build-config.outputs.build_apk == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: pgconfscanner-debug-${{ env.VERSION_NAME }}-apk
           path: android/app/build/outputs/apk/debug/*.apk
@@ -160,7 +160,7 @@ jobs:
 
       - name: Upload Release APK
         if: steps.build-config.outputs.build_release == 'true' && steps.build-config.outputs.build_apk == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: pgconfscanner-release-${{ env.VERSION_NAME }}-apk
           path: android/app/build/outputs/apk/release/*.apk
@@ -169,7 +169,7 @@ jobs:
 
       - name: Upload Release AAB
         if: steps.build-config.outputs.build_release == 'true' && steps.build-config.outputs.build_aab == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: pgconfscanner-release-${{ env.VERSION_NAME }}-aab
           path: android/app/build/outputs/bundle/release/*.aab
