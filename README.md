@@ -263,7 +263,7 @@ it('should load data on mount', async () => {
 
 GitHub Actions runs lint, type checking, the test suite with coverage, and a production build on every push to `main` and on every pull request against it.
 
-Android (APK/AAB) and iOS (App Store) builds run when a `v*.*.*` tag is pushed, or manually from the Actions tab.
+Android (APK/AAB) and iOS (App Store) builds run when a `v*.*.*` tag is pushed, or manually from the Actions tab. Tag builds upload the IPA to App Store Connect and, when the `PLAY_SERVICE_ACCOUNT_JSON` secret is set, the AAB to the Google Play internal track.
 
 ## Backend Integration
 
@@ -352,10 +352,13 @@ Links open the app directly for `www.postgresql.eu`, `postgresql.us`, `www.pgeve
 
 ### Google Play Store
 
-- Data Safety declarations completed
-- Target SDK 35 (Android 15)
-- 64-bit native libraries
-- Age rating: Everyone
+- Package name `eu.postgresql.pgconfscanner`, a separate listing from the legacy `eu.postgresql.android.conferencescanner` app
+- Signed with Play App Signing; the CI keystore is the upload key
+- Tag builds are uploaded to the internal track and promoted to production from Play Console
+- The first AAB has to be uploaded manually in Play Console, because the Play Developer API cannot register a new app
+- `PLAY_SERVICE_ACCOUNT_JSON` holds the JSON key of a Google Cloud service account that has been invited in Play Console with release permissions
+- App Links only verify if each deep-link domain's `/.well-known/assetlinks.json` lists this package with the Play App Signing certificate's SHA-256 fingerprint (shown on the App integrity page in Play Console)
+- Target SDK 35 (Android 15); Play requires API 36 for new apps and updates from 31 August 2026
 
 ## Contributing
 

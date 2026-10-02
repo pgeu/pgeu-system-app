@@ -176,6 +176,34 @@ jobs:
           retention-days: 90
           if-no-files-found: warn
 
+      - name: Check Google Play credentials
+        id: play
+        if: github.ref_type == 'tag' && steps.keystore.outputs.has_keystore == 'true'
+        env:
+          PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+        run: |
+          if [ -n "$PLAY_SERVICE_ACCOUNT_JSON" ]; then
+            echo "has_credentials=true" >> $GITHUB_OUTPUT
+          else
+            echo "No Google Play service account configured - skipping upload"
+            echo "has_credentials=false" >> $GITHUB_OUTPUT
+          fi
+
+      # The first AAB for a new app must be uploaded manually in Play Console,
+      # as the Play Developer API cannot register an app; this step fails until
+      # that has been done. Releases land on the internal track, and are
+      # promoted to production from Play Console.
+      - name: Upload to Google Play
+        if: steps.play.outputs.has_credentials == 'true'
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: eu.postgresql.pgconfscanner
+          releaseFiles: android/app/build/outputs/bundle/release/*.aab
+          releaseName: ${{ env.VERSION_NAME }}
+          tracks: internal
+          status: completed
+
       - name: Clean up keystore
         if: always()
         run: rm -f android/app/release.keystore
