@@ -40,6 +40,7 @@ import HelpModal from '../components/HelpModal';
 import { helpContent } from '../content/helpContent';
 import { BarcodeScanner } from '@capacitor-mlkit/barcode-scanning';
 import { isCheckinRegistration } from '../utils/typeGuards';
+import { redactTokens } from '../utils/redact';
 import { HighlightedText } from '../components/HighlightedText';
 import { ErrorMessage } from '../components/ErrorMessage';
 import { LoadingSpinner } from '../components/LoadingSpinner';
@@ -160,7 +161,7 @@ const ConferenceListPage: React.FC = () => {
 
       // Add barcode listener
       const listener = await BarcodeScanner.addListener('barcodesScanned', async (result) => {
-        console.log('[Scanner] Barcode scanned:', result);
+        console.log('[Scanner] Barcode scanned, barcodes:', result.barcodes?.length ?? 0);
 
         // Stop scanning and remove listener
         await BarcodeScanner.stopScan();
@@ -175,7 +176,7 @@ const ConferenceListPage: React.FC = () => {
         }
 
         const qrCode = result.barcodes[0].rawValue;
-        console.log('[Scanner] Scanned QR code:', qrCode);
+        console.log('[Scanner] Scanned QR code:', redactTokens(qrCode));
 
         // Create API client for the active conference
         const apiClient = createApiClientFromConference(activeConf);

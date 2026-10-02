@@ -64,7 +64,7 @@ const StatsPage: React.FC = () => {
         mode: activeConference.mode,
         baseUrl: activeConference.baseUrl,
         eventSlug: activeConference.eventSlug,
-        token: activeConference.token ? `${activeConference.token.substring(0, 10)}...` : 'missing',
+        hasToken: !!activeConference.token,
         fieldId: activeConference.fieldId,
       });
 

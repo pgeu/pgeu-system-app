@@ -15,6 +15,7 @@ import type {
   ApiRequestOptions,
   StoreRequestBody,
 } from '../types/api';
+import { redactTokens } from '../utils/redact';
 
 /**
  * API Client for pgeu-system backend
@@ -71,7 +72,7 @@ export class ApiClient {
           httpOptions.data = options.data;
         }
 
-        console.log(`[ApiClient] ${method} ${httpOptions.url}`);
+        console.log(`[ApiClient] ${method} ${redactTokens(httpOptions.url)}`);
         const response: HttpResponse = await CapacitorHttp.request(httpOptions);
         console.log(`[ApiClient] Response status:`, response.status);
 

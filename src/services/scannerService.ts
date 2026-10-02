@@ -6,6 +6,7 @@
 import { BarcodeScanner } from '@capacitor-mlkit/barcode-scanning';
 import type { ScannerError, ScanResult } from '../types/scanner';
 import { parseQRCode } from '../utils/tokenValidator';
+import { redactTokens } from '../utils/redact';
 
 /**
  * Scanner service for QR code scanning operations
@@ -79,12 +80,12 @@ export class ScannerService {
       console.log('[ScannerService] Calling BarcodeScanner.scan()');
       const result = await BarcodeScanner.scan();
 
-      console.log('[ScannerService] scan completed, result:', result);
+      console.log('[ScannerService] scan completed, barcodes:', result.barcodes?.length ?? 0);
 
       // Handle scan result
       if (result.barcodes && result.barcodes.length > 0) {
         const scannedValue = result.barcodes[0].rawValue;
-        console.log('[ScannerService] Barcode found:', scannedValue);
+        console.log('[ScannerService] Barcode found:', redactTokens(scannedValue));
         const parsedCode = parseQRCode(scannedValue);
 
         if (parsedCode) {
