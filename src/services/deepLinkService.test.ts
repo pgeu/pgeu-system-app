@@ -224,6 +224,59 @@ describe('DeepLinkService', () => {
       expect(mockHandler).toHaveBeenNthCalledWith(2, url2);
     });
 
+    it('should keep the new handler when an earlier destroy finishes late', async () => {
+      let finishRemove!: () => void;
+      mockListener.remove.mockReturnValue(new Promise<void>(resolve => { finishRemove = resolve; }));
+      const secondListener = { remove: vi.fn().mockResolvedValue(undefined) };
+
+      await service.initialize(mockHandler);
+      const pendingDestroy = service.destroy();
+      vi.mocked(App.addListener).mockResolvedValue(secondListener as any);
+      await service.initialize(mockHandler);
+      finishRemove();
+      await pendingDestroy;
+
+      const eventHandler = vi.mocked(App.addListener).mock.calls[1][1];
+      const url = 'https://postgresql.eu/events/test/checkin/' + 'e'.repeat(40) + '/';
+      const result = await eventHandler({ url });
+
+      expect(result.success).toBe(true);
+      expect(mockHandler).toHaveBeenCalledWith(url);
+      expect(secondListener.remove).not.toHaveBeenCalled();
+    });
+
+    it('should remove a listener whose initialize was overtaken by destroy', async () => {
+      const pendingInit = service.initialize(mockHandler);
+      await service.destroy();
+      await pendingInit;
+
+      expect(mockListener.remove).toHaveBeenCalledTimes(1);
+    });
+
+    it('should handle the launch URL once when the listener and check both deliver it', async () => {
+      const launchUrl = 'https://postgresql.eu/events/test/checkin/' + 'f'.repeat(40) + '/';
+      vi.mocked(App.getLaunchUrl).mockResolvedValue({ url: launchUrl });
+
+      await service.initialize(mockHandler);
+      const eventHandler = vi.mocked(App.addListener).mock.calls[0][1];
+
+      await Promise.all([
+        eventHandler({ url: launchUrl }),
+        service.checkLaunchUrl(mockHandler),
+        service.checkLaunchUrl(mockHandler),
+      ]);
+
+      expect(mockHandler).toHaveBeenCalledTimes(1);
+      expect(App.getLaunchUrl).toHaveBeenCalledTimes(1);
+
+      // A later, warm open of any URL (even the same one) is still handled
+      const otherUrl = 'https://postgresql.eu/events/other/checkin/' + 'g'.repeat(40) + '/';
+      await eventHandler({ url: otherUrl });
+      await eventHandler({ url: launchUrl });
+
+      expect(mockHandler).toHaveBeenCalledTimes(3);
+    });
+
     it('should properly clean up and reinitialize', async () => {
       await service.initialize(mockHandler);
       await service.destroy();

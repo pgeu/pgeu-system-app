@@ -34,18 +34,20 @@ export function useDeepLink(options: UseDeepLinkOptions = {}) {
 
   const navigate = useNavigate();
   const addConferenceFromUrl = useConferenceStore(state => state.addConferenceFromUrl);
-  const isInitialized = useRef(false);
+  // Read through refs so that a new navigate() (which react-router hands out
+  // on every location change) doesn't tear down and re-register the listener
+  const latest = useRef({ navigate, addConferenceFromUrl, navigateOnSuccess });
+  const checkLaunchUrlRef = useRef(checkLaunchUrl);
 
   useEffect(() => {
-    // Prevent double initialization in StrictMode
-    if (isInitialized.current) {
-      return;
-    }
-    isInitialized.current = true;
+    latest.current = { navigate, addConferenceFromUrl, navigateOnSuccess };
+  }, [navigate, addConferenceFromUrl, navigateOnSuccess]);
 
+  useEffect(() => {
     // Handler function for deep links
     const handleDeepLink = async (url: string): Promise<boolean> => {
       try {
+        const { addConferenceFromUrl, navigate, navigateOnSuccess } = latest.current;
         const success = await addConferenceFromUrl(url);
 
         if (success && navigateOnSuccess) {
@@ -64,7 +66,8 @@ export function useDeepLink(options: UseDeepLinkOptions = {}) {
     deepLinkService.initialize(handleDeepLink);
 
     // Check for launch URL if app was opened with one
-    if (checkLaunchUrl) {
+    // (the service only processes it once, so StrictMode's remount is safe)
+    if (checkLaunchUrlRef.current) {
       deepLinkService.checkLaunchUrl(handleDeepLink).catch(error => {
         console.error('Error checking launch URL:', error);
       });
@@ -73,7 +76,6 @@ export function useDeepLink(options: UseDeepLinkOptions = {}) {
     // Cleanup on unmount
     return () => {
       deepLinkService.destroy();
-      isInitialized.current = false;
     };
-  }, [addConferenceFromUrl, navigate, navigateOnSuccess, checkLaunchUrl]);
+  }, []);
 }
