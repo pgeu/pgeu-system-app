@@ -6,7 +6,7 @@ on:
       version:
         description: 'Version number (e.g., 1.0.0)'
         required: true
-        default: '1.1.0'
+        default: '1.2.0'
         type: string
 
   push:
@@ -77,6 +77,9 @@ jobs:
           # Strip 'v' prefix if present (from tag)
           VERSION="${{ env.VERSION_NAME }}"
           VERSION="${VERSION#v}"
+          # App Store Connect only accepts up to three dot-separated integers,
+          # so drop any pre-release suffix (1.2.0-alpha1 becomes 1.2.0)
+          VERSION="${VERSION%%-*}"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "build_number=${{ github.run_number }}" >> $GITHUB_OUTPUT
 
