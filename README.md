@@ -17,14 +17,13 @@ This Ionic application replaces the legacy Android-only app, expanding support t
 
 ## Platform Support
 
-- **iOS:** 14.0 and later
-- **Android:** 11 (API 30) and later
+- **iOS:** 16.0 and later
+- **Android:** 8.0 (API 26) and later, targeting API 35
 
 **Architecture Principles:**
 
 - Modern, non-deprecated APIs only
 - TypeScript strict mode for type safety
-- Secure token storage using platform keychains
 - Network-first design (no offline mode)
 
 ## Key Features
@@ -57,27 +56,26 @@ This Ionic application replaces the legacy Android-only app, expanding support t
 - Attendee search by name (check-in mode)
 - Real-time statistics dashboard (admin only)
 - Deep linking for easy setup
-- Dark mode support
-- Full accessibility support (screen readers, large text)
 
 ## Technology Stack
 
 **Core Framework:**
 
-- Ionic Framework 8.7.9
-- Capacitor 7.4.2
-- React 19.0.0
-- TypeScript 5.8.3 (strict mode)
-- Vite (build tool)
+- Ionic Framework 8.8
+- Capacitor 7.6
+- React 18.2
+- TypeScript 5.9 (strict mode)
+- Vite 7 (build tool)
 
 **Key Dependencies:**
 
 - **UI Components:** @ionic/react (Ionic UI components)
-- **Camera & QR:** @capacitor/camera + @capacitor-mlkit/barcode-scanning
-- **Networking:** Axios with retry interceptors
-- **Storage:** @capacitor/preferences (app data), @capacitor/secure-storage-plugin (secure tokens)
+- **QR Scanning:** @capacitor-mlkit/barcode-scanning
+- **Networking:** Capacitor's native HTTP client (`CapacitorHttp`), retrying on network and 5xx errors
+- **Storage:** @capacitor/preferences
+- **Deep Links:** @capacitor/app
 - **State Management:** Zustand (global state)
-- **Routing:** Ionic React Router (built on React Router)
+- **Routing:** React Router 7 (`react-router-dom`)
 - **Icons:** Ionicons
 - **Asset Generation:** @capacitor/assets, run on demand with `npx @capacitor/assets generate` (not a project dependency)
 
@@ -106,23 +104,24 @@ pgeu-system-app/
 
 ### Prerequisites
 
-- **Node.js** 18+ LTS
-- **Xcode** 15+ (for iOS development, macOS only)
-- **Android Studio** (for Android development)
-- **Java 17** (for Android builds)
+- **Node.js** 20+
+- **Xcode** 16+ (for iOS development, macOS only)
+- **Android Studio** 2024.2.1+ (for Android development)
+- **Java 21** (for Android builds)
 
 ### Installation
 
 1. **Clone the repository**
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/pgeu/pgeu-system-app.git
    cd pgeu-system-app
    ```
 
 2. **Install dependencies**
    ```bash
-   npm install
+   npm install --legacy-peer-deps
    ```
+   The flag is needed because `@ionic/react-router` declares a peer dependency on React Router 5, whilst the app uses React Router 7. CI installs the same way.
 
 3. **Sync native platforms**
    ```bash
@@ -175,37 +174,24 @@ The PGConf Scanner has comprehensive test coverage using Vitest. Tests cover uti
 
 ### Test Framework
 
-- **Testing Library**: Vitest 4.0.8
-- **React Testing**: @testing-library/react 14.3.1
+- **Test Runner**: Vitest 4
+- **React Testing**: @testing-library/react 14
 - **Mocking**: Vitest built-in mocking
 - **Environment**: jsdom (for DOM simulation)
 - **Coverage**: v8 provider with HTML/LCOV reporting
 
 ### Test Coverage
 
-Coverage thresholds are maintained at 70% for all metrics:
+`npm run test:coverage` fails if coverage drops below the thresholds in `vitest.config.ts`:
 
 ```typescript
 thresholds: {
-  lines: 70,
-  functions: 70,
-  branches: 70,
-  statements: 70,
+  lines: 65,
+  functions: 60,
+  branches: 60,
+  statements: 65,
 }
 ```
-
-**Well Tested (>80% coverage):**
-- Conference URL parsing
-- Token validation
-- Conference store logic
-- API client methods
-- Storage service operations
-
-**Moderate Coverage (50-80%):**
-- Component interactions
-- Error boundaries
-- Modal behaviors
-- Scanner integration
 
 ### Test Structure
 
@@ -213,6 +199,8 @@ thresholds: {
 
 - `conferenceParser.test.ts` - URL parsing, validation, conference creation
 - `tokenValidator.test.ts` - Token format validation
+- `textUtils.test.ts` - Text helpers
+- `typeGuards.test.ts` - Runtime type guards
 
 **Services:**
 
@@ -230,19 +218,26 @@ thresholds: {
 - `ConferenceListPage.test.tsx` - Page rendering, scanner integration
 - `AddConferencePage.test.tsx` - Form validation, submission
 - `StatsPage.test.tsx` - Data loading, table rendering
+- `HighlightedText.test.tsx` - Search term highlighting
 
 ### Common Test Patterns
 
 **Mocking Capacitor Plugins:**
+
+The Capacitor plugins are mocked globally in `src/test/setup.ts`, for example:
+
 ```typescript
 vi.mock('@capacitor-mlkit/barcode-scanning', () => ({
   BarcodeScanner: {
+    scan: vi.fn(),
     isSupported: vi.fn(),
     checkPermissions: vi.fn(),
-    startScan: vi.fn(),
+    requestPermissions: vi.fn(),
   },
 }));
 ```
+
+The same file also configures Testing Library so that failed queries don't include a dump of the DOM; Ionic's minified components make that dump extremely slow.
 
 **Testing Async Operations:**
 ```typescript
@@ -266,12 +261,9 @@ it('should load data on mount', async () => {
 
 ### Continuous Integration
 
-Tests run automatically on:
+GitHub Actions runs lint, type checking, the test suite with coverage, and a production build on every push to `main` and on every pull request against it.
 
-- Every commit (pre-commit hook recommended)
-- Pull request creation
-- Main branch merges
-- Release builds
+Android (APK/AAB) and iOS (App Store) builds run when a `v*.*.*` tag is pushed, or manually from the Actions tab.
 
 ## Backend Integration
 
@@ -307,7 +299,7 @@ Technical documentation is available in the `.claude/` directory:
 
 ### Check-in Ticket
 ```
-ID$[40-char-hex-token]$ID
+ID$[40-64 hex character token]$ID
 or
 https://{domain}/t/id/{token}/
 
@@ -316,7 +308,7 @@ Test token: ID$TESTTESTTESTTEST$ID
 
 ### Sponsor/Field Badge
 ```
-AT$[40-char-hex-token]$AT
+AT$[40-64 hex character token]$AT
 or
 https://{domain}/t/at/{token}/
 
@@ -347,6 +339,8 @@ https://{domain}/events/sponsor/scanning/{token}/
 - iOS: Associated Domains + Universal Links
 - Android: App Links verification + Digital Asset Links
 
+Links open the app directly for `www.postgresql.eu`, `postgresql.us`, `www.pgevents.ca` and `pgday.uk`, as configured in `ios/App/App/App.entitlements` and `android/app/src/main/AndroidManifest.xml`. Conferences on other domains can still be added by entering the URL manually.
+
 ## App Store Deployment
 
 ### iOS App Store
@@ -359,7 +353,7 @@ https://{domain}/events/sponsor/scanning/{token}/
 ### Google Play Store
 
 - Data Safety declarations completed
-- Target SDK 34 (Android 14) minimum
+- Target SDK 35 (Android 15)
 - 64-bit native libraries
 - Age rating: Everyone
 
@@ -375,10 +369,9 @@ Development follows these principles:
 
 ## Security
 
-- **Tokens:** Stored in platform keychains (iOS Keychain, Android Keystore)
-- **Network:** HTTPS only (localhost excepted for development)
-- **Logging:** Tokens and sensitive data sanitized from logs
-- **Permissions:** Camera access only, with clear user consent
+- **Tokens:** Stored on the device with Capacitor Preferences (UserDefaults on iOS, SharedPreferences on Android), which is not encrypted storage
+- **Network:** HTTPS only; conference URLs are always rebuilt as `https://`
+- **Permissions:** Camera (for scanning) and internet access only, with the camera requested at first use
 
 ## Support
 
@@ -395,12 +388,12 @@ This code is licenced under [The PostgreSQL License](LICENSE.md).
 ## Project Status
 
 **Current Phase:** Production Ready
-**Last Updated:** 2025-11-14
+**Last Updated:** 2026-10-02
 
-The Ionic + Capacitor migration is complete. The app is fully functional on both iOS 14+ and Android 11+ (API 30+).
+The Ionic + Capacitor migration is complete. The app is fully functional on both iOS 16+ and Android 8.0+ (API 26+).
 
 ---
 
 **Built with:** Ionic Framework | Capacitor | TypeScript | React
-**Platforms:** iOS 14+ | Android 11+ (API 30+)
+**Platforms:** iOS 16+ | Android 8.0+ (API 26+)
 **Organizations:** PostgreSQL Europe, PostgreSQL US, PGEvents Canada, PGDay UK
