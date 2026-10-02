@@ -403,6 +403,15 @@ describe('ConferenceListPage', () => {
   });
 
   describe('Barcode Scanner Integration', () => {
+    // Starting a scan opens the scan result modal, which Ionic presents
+    // asynchronously. If the test ends first, cleanup unmounts the page
+    // mid-present and Ionic rejects with "framework delegate is missing",
+    // so wait until the modal has finished presenting.
+    const waitForScanModalPresented = () =>
+      waitFor(() => {
+        expect(document.querySelector('ion-modal.show-modal')).not.toBeNull();
+      });
+
     it('should check scanner support before scanning', async () => {
       const mockState = {
         conferences: [mockConference],
@@ -432,6 +441,8 @@ describe('ConferenceListPage', () => {
       await waitFor(() => {
         expect(BarcodeScanner.isSupported).toHaveBeenCalled();
       });
+      expect(await screen.findByText('Barcode scanning is not supported on this device')).toBeInTheDocument();
+      await waitForScanModalPresented();
     });
 
     it('should check permissions before scanning', async () => {
@@ -465,6 +476,8 @@ describe('ConferenceListPage', () => {
       await waitFor(() => {
         expect(BarcodeScanner.checkPermissions).toHaveBeenCalled();
       });
+      expect(await screen.findByText(/Camera permission denied/)).toBeInTheDocument();
+      await waitForScanModalPresented();
     });
   });
 
