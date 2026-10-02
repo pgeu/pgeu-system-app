@@ -18,7 +18,7 @@ This Ionic application replaces the legacy Android-only app, expanding support t
 ## Platform Support
 
 - **iOS:** 16.0 and later
-- **Android:** 8.0 (API 26) and later, targeting API 35
+- **Android:** 8.0 (API 26) and later, targeting API 36 (Android 16)
 
 **Architecture Principles:**
 
@@ -106,7 +106,7 @@ pgeu-system-app/
 
 - **Node.js** 20+
 - **Xcode** 16+ (for iOS development, macOS only)
-- **Android Studio** 2024.2.1+ (for Android development)
+- **Android Studio** Meerkat (2024.3.1 Patch 1)+ (for Android development)
 - **Java 21** (for Android builds)
 
 ### Installation
@@ -358,7 +358,7 @@ Links open the app directly for `www.postgresql.eu`, `postgresql.us`, `www.pgeve
 - The first AAB has to be uploaded manually in Play Console, because the Play Developer API cannot register a new app
 - `PLAY_SERVICE_ACCOUNT_JSON` holds the JSON key of a Google Cloud service account that has been invited in Play Console with release permissions
 - App Links only verify if each deep-link domain's `/.well-known/assetlinks.json` lists this package with the Play App Signing certificate's SHA-256 fingerprint (shown on the App integrity page in Play Console)
-- Target SDK 35 (Android 15); Play requires API 36 for new apps and updates from 31 August 2026
+- Target SDK 36 (Android 16), as Play requires for new apps and updates from 31 August 2026
 
 ## Contributing
 
