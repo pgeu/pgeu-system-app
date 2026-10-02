@@ -79,6 +79,7 @@ const ConferenceListPage: React.FC = () => {
     if (state?.openModal) {
       console.log('[ConferenceList] Opening modal from navigation state');
       // Hide main content immediately to prevent flash
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setHideMainContent(true);
       // Use setTimeout to allow navigation transition to complete before opening modal
       setTimeout(() => {

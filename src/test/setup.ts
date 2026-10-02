@@ -1,6 +1,19 @@
 import { afterEach, vi, beforeAll, afterAll } from 'vitest';
-import { cleanup } from '@testing-library/react';
+import { cleanup, configure } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
+
+// Don't pretty-print the DOM into failed query errors. Ionic 8.8+ ships
+// minified components whose classes are anonymous, and Testing Library's
+// DOM printer doesn't recognise elements with an empty constructor.name, so
+// it serialises them as plain objects. That takes seconds per failed query
+// and ends in "Invalid string length", which hangs every waitFor() retry.
+configure({
+  getElementError: (message) => {
+    const error = new Error(message ?? undefined);
+    error.name = 'TestingLibraryElementError';
+    return error;
+  },
+});
 
 // Cleanup after each test
 afterEach(() => {

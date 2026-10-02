@@ -88,6 +88,9 @@ const StatsPage: React.FC = () => {
   }, [activeConference]);
 
   useEffect(() => {
+    // Fetching on mount is the point of this effect; loadStats() sets the
+    // loading/error state before awaiting the API call.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadStats();
   }, [loadStats]);
 
